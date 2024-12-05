@@ -1,0 +1,20 @@
+{
+  "C_Cpp.default.compilerPath": "C:\\Users\\jacks\\mingw64\\bin\\g++.exe",
+  "files.associations": {
+    "variant": "cpp",
+    "*.tcc": "cpp",
+    "iostream": "cpp",
+    "deque": "cpp",
+    "string": "cpp",
+    "vector": "cpp",
+    "tuple": "cpp",
+    "array": "cpp",
+    "memory": "cpp",
+    "format": "cpp",
+    "istream": "cpp",
+    "functional": "cpp",
+    "utility": "cpp",
+    "ostream": "cpp",
+    "filesystem": "cpp"
+  }
+}
