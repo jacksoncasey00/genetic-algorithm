@@ -108,7 +108,7 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
   command = "gcov -r ./example_programs/functionParser.cpp > NUL 2>&1";
   system(command.c_str());
 
-  command = "for /r %%i in (*.gcda) do del \"%%i\" > NUL 2>&1";
+  command = "del /s /q *.gcda > NUL 2>&1";
   system(command.c_str());
 
   // Parse .gcov file to compute fitness
@@ -147,6 +147,7 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
           // Check if this is a new line
           if (previouslyExecutedLines.find(lineNumber) == previouslyExecutedLines.end())
           {
+            cout << "NEW CHARACTER INTRODUCED" << endl;
             ++newLines; // Increment new line count
           }
         }
@@ -157,7 +158,7 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
 
   if (newLines > 0)
   {
-    usefulInputs.push_back(args);
+    //usefulInputs.push_back(args);
   }
   // Update the global set of executed lines
   previouslyExecutedLines.insert(currentExecution.begin(), currentExecution.end());
@@ -165,7 +166,7 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
   if (previouslyExecutedLines.size() == totalLines)
   {
     allStatementsExecuted = true;
-    usefulInputs.push_back(args);
+    //usefulInputs.push_back(args);
   }
 
   // Calculate fitness
@@ -177,7 +178,7 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
     fullCoverage = true;
   }
 
-  cout << "Coverage: " << baseCoverage << "%, New Lines: " << newLines << ", Fitness: " << fitness << endl;
+  //cout << "Coverage: " << baseCoverage << "%, New Lines: " << newLines << ", Fitness: " << fitness << endl;
   return fitness; // Coverage %
 }
 
@@ -290,7 +291,7 @@ void geneticAlgorithm(const string &program, const vector<pair<string, string>> 
     for (const auto &individual : population)
     {
       fitnessScores.emplace_back(individual, evaluateFitness(individual, program));
-      cout << "Gen: " << gen << " Input: " << get<string>(individual.inputs[0].value) << " Coverage: " << fitnessScores[fitnessScores.size() - 1].second << "%\n\n";
+      cout << "Gen: " << gen << " Input: " << get<string>(individual.inputs[0].value) << " Coverage: " << fitnessScores[fitnessScores.size() - 1].second << endl;
 
       if (allStatementsExecuted && fullCoverage)
       {
@@ -346,9 +347,9 @@ void geneticAlgorithm(const string &program, const vector<pair<string, string>> 
     // Print generation stats
     cout << "Generation " << gen << ": Best fitness = " << fitnessScores[0].second << "%\n";
   }
-  cout << "Useful Inputs: " << endl;
-  for (int i = 0; i < usefulInputs.size(); i++)
-  {
-    cout << usefulInputs[i] << endl;
-  }
+  //cout << "Useful Inputs: " << endl;
+  //for (int i = 0; i < usefulInputs.size(); i++)
+  //{
+  //  cout << usefulInputs[i] << endl;
+  //}
 }
