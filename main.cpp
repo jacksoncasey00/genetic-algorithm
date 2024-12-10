@@ -14,6 +14,10 @@ int main(int argc, char *argv[]) {
   int i = 0;
   int generations = stoi(argv[2]);
   int populationSize = stoi(argv[3]);
+  bool fullCoverageDesired = false;
+  if (argv[4] == "--full") {
+    fullCoverageDesired = true;
+  }
 
   // CODE TO ACCEPT USE INPUT TO GET INITIAL VALUES. UNCOMMENT IF PREFERRED.
   //cout << "Enter the Name of the Program You Wish to Test: ";
@@ -36,6 +40,6 @@ int main(int argc, char *argv[]) {
 
   schema.emplace_back("var", "string");
 
-  geneticAlgorithm(program, schema, generations, populationSize);
+  geneticAlgorithm(program, schema, generations, populationSize, fullCoverageDesired);
   return 0;
 }

@@ -27,10 +27,10 @@ set<int> previouslyExecutedLines; //, vector<int>
 vector<string> usefulInputs;
 bool allStatementsExecuted = false;
 bool fullCoverage = false;
+static mt19937 rng(random_device{}());
 
 variant<int, double, string> generateRandomValue(const string &type)
 {
-  static mt19937 rng(random_device{}());
   if (type == "int")
   {
     uniform_int_distribution<int> dist(0, 100);
@@ -43,9 +43,15 @@ variant<int, double, string> generateRandomValue(const string &type)
   }
   else if (type == "string")
   {
-    string str(7, '\0'); // rng() % 10
+    /*uniform_int_distribution<char> char_dist(32, 126); // Printable ASCII range
+    string result(10, ' ');
+    for (auto& ch : result) {
+        ch = char_dist(rng);
+    }
+    return result;*/
+    string str(rand() % 10, '\0'); // rng() % 10
     for (auto &ch : str)
-      ch = 'a' + (rng() % 26);
+      ch = static_cast<char>((rng() % 74) + 48);
     return str;
   }
   // POTENTIAL OPTION FOR ACCEPTING VECTOR INPUTS
@@ -92,7 +98,7 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
       args += get<string>(input.value) + " ";
     }
 
-    //POTENTIAL OPTION FOR ACCEPTING VECTOR INPUTS
+    // POTENTIAL OPTION FOR ACCEPTING VECTOR INPUTS
     /*else if (holds_alternative<vector<int>>(input.value))
     {
       for (int i = 0; i < get<vector<int>>(input.value).size(); i++) {
@@ -132,14 +138,15 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
     // Parse line number from gcov output
     if (currentLine > 3)
     {
-      size_t lineStart = line.find_last_of(':') + 1;
-      if (lineStart != string::npos)
+      // size_t lineStart = line.find_last_of(':') + 1;
+      char indicator = line[line.find_first_of(':') - 1];
+      if (indicator != '-')
       {
         int lineNumber = currentLine - 3;
         ++totalLines;
 
         // Check if the line was executed
-        if (line.find("####") == string::npos)
+        if (indicator != '#')
         {
           ++coveredLines;
           currentExecution.insert(lineNumber);
@@ -148,6 +155,8 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
           if (previouslyExecutedLines.find(lineNumber) == previouslyExecutedLines.end())
           {
             cout << "NEW CHARACTER INTRODUCED" << endl;
+            usefulInputs.push_back(get<string>(chromosome.inputs[0].value));
+            previouslyExecutedLines.insert(lineNumber);
             ++newLines; // Increment new line count
           }
         }
@@ -158,27 +167,24 @@ double evaluateFitness(const Chromosome &chromosome, const string &program)
 
   if (newLines > 0)
   {
-    //usefulInputs.push_back(args);
+    // usefulInputs.push_back(args);
   }
-  // Update the global set of executed lines
-  previouslyExecutedLines.insert(currentExecution.begin(), currentExecution.end());
 
   if (previouslyExecutedLines.size() == totalLines)
   {
     allStatementsExecuted = true;
-    //usefulInputs.push_back(args);
+    // usefulInputs.push_back(args);
   }
 
   // Calculate fitness
   double baseCoverage = static_cast<double>(coveredLines) / totalLines * 100.0; // Base coverage %
-  double bonus = newLines * 5.0;                                                // Bonus fitness for each new line
-  double fitness = baseCoverage + bonus;
+
+  double fitness = newLines > 0 ? 100.0 : baseCoverage;
   if (baseCoverage == 100)
   {
     fullCoverage = true;
   }
 
-  //cout << "Coverage: " << baseCoverage << "%, New Lines: " << newLines << ", Fitness: " << fitness << endl;
   return fitness; // Coverage %
 }
 
@@ -231,14 +237,6 @@ Chromosome rankSelect(const vector<pair<Chromosome, double>> &fitnessScores)
 
 Chromosome crossover(const Chromosome &parent1, const Chromosome &parent2)
 {
-  // OLD CHROMOSOME CALCULATOR (USEFUL FOR NON-STRING VALUES)
-  /*Chromosome child = parent1;
-    for (size_t i = 0; i < child.inputs.size(); ++i) {
-        if (rand() % 2 == 0) {
-            child.inputs[i].value = parent2.inputs[i].value;
-        }
-    }
-    return child;*/
   Chromosome child;
   for (size_t i = 0; i < parent1.inputs.size(); ++i)
   {
@@ -255,6 +253,14 @@ Chromosome crossover(const Chromosome &parent1, const Chromosome &parent2)
     child.inputs.push_back({childName, childValue});
   }
   return child;
+  // OLD CHROMOSOME CALCULATOR (USEFUL FOR NON-STRING VALUES)
+  /*Chromosome child = parent1;
+    for (size_t i = 0; i < child.inputs.size(); ++i) {
+        if (rand() % 2 == 0) {
+            child.inputs[i].value = parent2.inputs[i].value;
+        }
+    }
+    return child;*/
 }
 
 void mutate(Chromosome &chromosome, const vector<pair<string, string>> &schema, double mutationRate = 0.1)
@@ -262,19 +268,31 @@ void mutate(Chromosome &chromosome, const vector<pair<string, string>> &schema, 
   for (size_t i = 0; i < chromosome.inputs.size(); ++i)
   {
     string newString = get<string>(chromosome.inputs[i].value);
-    for (size_t n = 0; n < get<string>(chromosome.inputs[i].value).length(); ++n)
+    if (rand() % 4 < 3)
+    {
+      for (size_t n = 0; n < get<string>(chromosome.inputs[i].value).length(); ++n)
+      {
+        if ((rand() / static_cast<double>(RAND_MAX)) < mutationRate)
+        {
+          newString[n] = (static_cast<char>((rand() % 74) + 48));// 'a' + (rand() % 26);
+        }
+      }
+    }
+    else
     {
       if ((rand() / static_cast<double>(RAND_MAX)) < mutationRate)
       {
-        variant<int, double, string> randomString = generateRandomValue(schema[i].second);
-        newString[n] = get<string>(randomString)[n];
+        newString = "";
+        for (int i = 0; i < rand() % 10; i++) {
+          newString.push_back(static_cast<char>((rand() % 74) + 48));
+        }
       }
     }
     chromosome.inputs[i].value = newString;
   }
 }
 
-void geneticAlgorithm(const string &program, const vector<pair<string, string>> &schema, int generations, int populationSize)
+void geneticAlgorithm(const string &program, const vector<pair<string, string>> &schema, int generations, int populationSize, bool fullCoverageDesired)
 {
   vector<Chromosome> population;
 
@@ -293,12 +311,18 @@ void geneticAlgorithm(const string &program, const vector<pair<string, string>> 
       fitnessScores.emplace_back(individual, evaluateFitness(individual, program));
       cout << "Gen: " << gen << " Input: " << get<string>(individual.inputs[0].value) << " Coverage: " << fitnessScores[fitnessScores.size() - 1].second << endl;
 
-      if (allStatementsExecuted && fullCoverage)
+      if ((allStatementsExecuted && !fullCoverageDesired) || (allStatementsExecuted && fullCoverageDesired && fullCoverage))
       {
+        cout << "Useful Inputs: " << endl;
+        for (int i = 0; i < usefulInputs.size(); i++)
+        {
+          cout << usefulInputs[i] << endl;
+        }
+        cout << get<string>(individual.inputs[0].value) << endl;
         break;
       }
     }
-    if (allStatementsExecuted && fullCoverage)
+    if ((allStatementsExecuted && !fullCoverageDesired) || (allStatementsExecuted && fullCoverageDesired && fullCoverage))
     {
       cout << "All Statements Executed!" << endl;
       break;
@@ -347,9 +371,4 @@ void geneticAlgorithm(const string &program, const vector<pair<string, string>> 
     // Print generation stats
     cout << "Generation " << gen << ": Best fitness = " << fitnessScores[0].second << "%\n";
   }
-  //cout << "Useful Inputs: " << endl;
-  //for (int i = 0; i < usefulInputs.size(); i++)
-  //{
-  //  cout << usefulInputs[i] << endl;
-  //}
 }

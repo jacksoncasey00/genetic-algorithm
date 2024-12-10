@@ -15,6 +15,9 @@
     "functional": "cpp",
     "utility": "cpp",
     "ostream": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "unordered_map": "cpp",
+    "unordered_set": "cpp",
+    "algorithm": "cpp"
   }
 }
