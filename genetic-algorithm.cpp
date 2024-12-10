@@ -28,6 +28,7 @@ vector<string> usefulInputs;
 bool allStatementsExecuted = false;
 bool fullCoverage = false;
 static mt19937 rng(random_device{}());
+string characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 variant<int, double, string> generateRandomValue(const string &type)
 {
@@ -51,7 +52,7 @@ variant<int, double, string> generateRandomValue(const string &type)
     return result;*/
     string str(rand() % 10, '\0'); // rng() % 10
     for (auto &ch : str)
-      ch = static_cast<char>((rng() % 74) + 48);
+      ch = characters[(rng() % characters.length())];
     return str;
   }
   // POTENTIAL OPTION FOR ACCEPTING VECTOR INPUTS
@@ -274,7 +275,7 @@ void mutate(Chromosome &chromosome, const vector<pair<string, string>> &schema, 
       {
         if ((rand() / static_cast<double>(RAND_MAX)) < mutationRate)
         {
-          newString[n] = (static_cast<char>((rand() % 74) + 48));// 'a' + (rand() % 26);
+          newString[n] = (characters[(rng() % characters.length())]);// 'a' + (rand() % 26);
         }
       }
     }
@@ -284,7 +285,7 @@ void mutate(Chromosome &chromosome, const vector<pair<string, string>> &schema, 
       {
         newString = "";
         for (int i = 0; i < rand() % 10; i++) {
-          newString.push_back(static_cast<char>((rand() % 74) + 48));
+          newString.push_back(characters[(rng() % characters.length())]);
         }
       }
     }

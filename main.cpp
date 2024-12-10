@@ -14,8 +14,12 @@ int main(int argc, char *argv[]) {
   int i = 0;
   int generations = stoi(argv[2]);
   int populationSize = stoi(argv[3]);
+  string coverageFlag = "";
+  if (argc > 4) {
+    coverageFlag = argv[4];
+  }
   bool fullCoverageDesired = false;
-  if (argv[4] == "--full") {
+  if (coverageFlag == "--full") {
     fullCoverageDesired = true;
   }
 
